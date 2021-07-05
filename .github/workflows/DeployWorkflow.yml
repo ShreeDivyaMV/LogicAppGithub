@@ -1,60 +1,48 @@
-name: DeploySimpleWorkflow
+name: build-and-deploy-logic-app-vnet
+
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
     inputs:
-      RG_LA:
-        description: 'SubscriptionId'
+      LogicAppName:
+        description: 'Name of theLogic App'
         required: true
-      LA_NAME:
-        description: 'Resource group name'
-        required: true
+
+# CONFIGURATION
+# For help, go to https://github.com/Azure/Actions
+#
+# 1. Paste the RBAC json into the following secret in your repository:
+#   AZURE_RBAC_CREDENTIALS
+#
+# 2. Change these variables for your configuration:
+env:
+  AZURE_LOGICAPPFE_PACKAGE_PATH: '.'
 
 jobs:
-  Build:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Easy Zip Files
-        uses: vimtor/action-zip@v1
-        with:
-          dest: ${{ github.run_id }}.zip
-          files: ./
-      - uses: actions/upload-artifact@master
-        with:
-          name: build-artifact
-          path: ${{ github.run_id }}.zip
-  Deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
-    needs: [Build] 
-    steps:
-     - uses: azure/login@v1
-       with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-        enable-AzPSSession: true
-     - name: Get publish Profile
-       id: laapp
-       uses: azure/powershell@v1
-       with:
-         inlineScript: |
-          $profile = Get-AzWebAppPublishingProfile `
-              -ResourceGroupName ${{github.event.inputs.RG_LA}}`
-              -Name ${{github.event.inputs.LA_NAME}}
-          $profile = $profile.Replace("`r", "").Replace("`n", "")
-          Write-Output "::set-output name=profile::$profile"
-         azPSVersion: latest
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@master
 
-     - uses: actions/download-artifact@master
-       with:
-        name: build-artifact
-        path: build-art/
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-     - name: Deploy to Azure Logic App
-       uses: Azure/functions-action@v1
-       id: la
-       with:
-        app-name: ${{github.event.inputs.RG_LA}}
-        package: build-art/${{ github.run_id }}.zip
-        publish-profile: ${{steps.laapp.outputs.profile}}
+    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 'build logicapp-fe'
+      shell: pwsh
+      run: |
+        pushd './${{ env.AZURE_LOGICAPPFE_PACKAGE_PATH }}'
+        dotnet build --configuration Release --output ./output
+        popd
+    - name: 'deploy logic-app'
+      uses: Azure/functions-action@v1
+      id: logic-app
+      with:
+        app-name: ${{github.event.inputs.LogicAppName}}
+        package: '${{ env.AZURE_LOGICAPPFE_PACKAGE_PATH }}/output'
