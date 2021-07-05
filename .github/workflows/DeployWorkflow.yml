@@ -1,4 +1,4 @@
-name: learn-github-actions
+name: DeploySimpleWorkflow
 on:
   push:
     branches: [ master ]
