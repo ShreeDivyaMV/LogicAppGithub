@@ -31,5 +31,5 @@ jobs:
         with:
           subscriptionId: ${{github.event.inputs.subscriptionId}}
           resourceGroupName: ${{github.event.inputs.resourceGroupName}}
-          template: ./LAv2-vNet/templates/azuredeploy.json
-          parameters: ./LAv2-vNet/templates/azuredeploy.parameters.json
+          template: ./ARMTemplates/LA_Standard_Basic.json
+          parameters: ./ARMTemplates/LA_Standard_Basic_Param.json
