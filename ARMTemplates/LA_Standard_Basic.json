@@ -1,0 +1,216 @@
+
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+  "parameters": {
+    "logicAppname": {
+      "type": "String"
+    },
+    "appInsightName": {
+      "type": "String"
+    },
+    "use32BitWorkerProcess": {
+      "type": "Bool"
+    },
+    "location": {
+      "defaultValue": "[resourceGroup().location]",
+      "type": "String",
+      "metadata": {
+        "description": "Location to deploy resources to."
+      }
+    },
+    "hostingPlanName": {
+      "type": "String"
+    },
+    "StorageAccountName": {
+      "type": "String"
+    },
+
+
+    "sku": {
+      "type": "String"
+    },
+    "skuCode": {
+      "type": "String"
+    },
+    "workerSize": {
+      "type": "String"
+    },
+    "workerSizeId": {
+      "type": "String"
+    },
+    "numberOfWorkers": {
+      "type": "String"
+    }
+  },
+  "variables": {
+    "fileShareName": "[concat(toLower(parameters('logicAppname')), 'b86e')]"
+  },
+    "resources": [    
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2021-04-01",
+        "name": "[parameters('StorageAccountName')]",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [       
+        ],
+        "sku": {
+          "name": "Standard_LRS",
+          "tier": "Standard"
+        },
+        "kind": "StorageV2",
+        "properties": {
+			 "mode": "Incremental",
+          "networkAcls": {
+            "bypass": "AzureServices",
+"virtualNetworkRules": [],
+	
+            "ipRules": [],
+            "defaultAction": "Allow"
+          },
+          "supportsHttpsTrafficOnly": true,
+          "encryption": {
+            "services": {
+              "file": {
+                "keyType": "Account",
+                "enabled": true
+              },
+              "blob": {
+                "keyType": "Account",
+                "enabled": true
+              }
+            },
+            "keySource": "Microsoft.Storage"
+          }
+        }
+      },
+     
+     
+      {
+        "type": "Microsoft.Insights/components",
+        "apiVersion": "2020-02-02",
+        "name": "[parameters('logicAppname')]",
+        "location": "[resourceGroup().location]",
+        "kind": "web",
+        "properties": {
+			 "mode": "Incremental",
+          "Application_Type": "web"
+        }
+      },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('logicAppname')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]"
+            ],
+            "tags": {},
+            "kind": "functionapp,workflowapp",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+				 "mode": "Incremental",
+                "name": "[parameters('logicAppname')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~3"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "node"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightName')), '2015-05-01').InstrumentationKey]"
+                        },
+                        {
+                            "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                            "value": "[reference(resourceId('Microsoft.Insights/components', parameters('appInsightName')), '2015-05-01').ConnectionString]"
+                        },
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('StorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',parameters('StorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccountName')), '2019-06-01').keys[0].value,';EndpointSuffix=','core.windows.net')]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[variables('fileShareName')]"
+                        },
+                        {
+                            "name": "APP_KIND",
+                            "value": "workflowApp"
+                        },
+                        {
+                            "name": "WEBSITE_VNET_ROUTE_ALL",
+                            "value": "0"
+                        },
+                        {
+                            "name": "WEBSITE_DNS_SERVER",
+                            "value": "168.63.129.16"
+                        },
+                        {
+                            "name": "AzureFunctionsJobHost__extensionBundle__id",
+                            "value": "Microsoft.Azure.Functions.ExtensionBundle.Workflows",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "AzureFunctionsJobHost__extensionBundle__version",
+                            "value": "[1.*, 2.0.0)",
+                            "slotSetting": false
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTOVERVNET",
+                            "value": "0",
+                            "slotSetting": false
+                        }
+                    ],
+                    "use32BitWorkerProcess": "[parameters('use32BitWorkerProcess')]",
+                    "cors": {
+                        "allowedOrigins": [
+                            "https://afd.hosting.portal.azure.net",
+                            "https://afd.hosting-ms.portal.azure.net",
+                            "https://hosting.portal.azure.net",
+                            "https://ms.hosting.portal.azure.net",
+                            "https://ema-ms.hosting.portal.azure.net",
+                            "https://ema.hosting.portal.azure.net",
+                            "https://ema.hosting.portal.azure.net"
+                        ]
+                    }
+                },
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', parameters('hostingPlanName'))]",
+                "clientAffinityEnabled": true
+            },
+            "resources": [
+                
+            ]
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('hostingPlanName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "tags": {},
+            "sku": {
+                "Tier": "[parameters('sku')]",
+                "Name": "[parameters('skuCode')]"
+            },
+            "kind": "",
+            "properties": {
+				 "mode": "Incremental",
+                "name": "[parameters('hostingPlanName')]",
+                "workerSize": "[parameters('workerSize')]",
+                "workerSizeId": "[parameters('workerSizeId')]",
+                "numberOfWorkers": "[parameters('numberOfWorkers')]",
+                "maximumElasticWorkerCount": "20"
+            }
+        }
+    ]
+}
