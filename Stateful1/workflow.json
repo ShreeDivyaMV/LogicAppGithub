@@ -12,10 +12,9 @@
                     },
                     "method": "post",
                     "body": {
-                        "To": "lubdha.dolas@tomtom.com",
-                        "Subject": "An email from your stateful workflow",
-                        "Body": "<p>Hello from Lubdha Stateful workflow!</p>",
-                        "Cc": "nidubey@microsoftsupport.com"
+                        "To": "shmv@microsoft.com",
+                        "Subject": "test",
+                        "Body": "<p>test</p>"
                     },
                     "path": "/v2/Mail"
                 },
