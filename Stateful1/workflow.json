@@ -2,21 +2,11 @@
     "definition": {
         "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
         "actions": {
-            "Send_an_email_(V2)": {
-                "type": "ApiConnection",
+            "Response": {
+                "type": "Response",
+                "kind": "http",
                 "inputs": {
-                    "host": {
-                        "connection": {
-                            "referenceName": "office365"
-                        }
-                    },
-                    "method": "post",
-                    "body": {
-                        "To": "shmv@microsoft.com",
-                        "Subject": "test",
-                        "Body": "<p>test</p>"
-                    },
-                    "path": "/v2/Mail"
+                    "statusCode": 200
                 },
                 "runAfter": {}
             }
