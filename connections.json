@@ -2,17 +2,20 @@
   "managedApiConnections": {
     "office365": {
       "api": {
-        "id": "/subscriptions/d3b32127-6610-4b98-bc6f-2f5f8dfae291/providers/Microsoft.Web/locations/westeurope/managedApis/office365"
+        "id": "/subscriptions/ea3e783f-6b4a-4e74-b379-9fa512da2b7f/providers/Microsoft.Web/locations/eastus2/managedApis/office365"
       },
       "connection": {
-        "id": "/subscriptions/d3b32127-6610-4b98-bc6f-2f5f8dfae291/resourceGroups/enterpriseit-LogicApp-Testing/providers/Microsoft.Web/connections/office365"
+        "id": "/subscriptions/ea3e783f-6b4a-4e74-b379-9fa512da2b7f/resourceGroups/shmvlimademosetup-infra/providers/Microsoft.Web/connections/office365"
       },
-      "connectionRuntimeUrl": "https://ce67e69eb88243e2.08.common.logic-westeurope.azure-apihub.net/apim/office365/5d3302d2066d47858a88bcc37f76e675/",
+      "connectionRuntimeUrl": "https://28e4576f9043090d.05.common.logic-eastus2.azure-apihub.net/apim/office365/2b135b0ed8c94e04a6d996048ff1dc08/",
       "authentication": {
-        "type": "Raw",
-        "scheme": "Key",
-        "parameter": "@appsetting('office365-connectionKey')"
-      }
+        "type": "ActiveDirectoryOAuth",
+        "audience": "https://management.core.windows.net/",
+        "credentialType": "Secret",
+        "clientId": "@appsetting('WORKFLOWAPP_AAD_CLIENTID')",
+        "tenant": "@appsetting('WORKFLOWAPP_AAD_TENANTID')",
+        "secret": "@appsetting('WORKFLOWAPP_AAD_CLIENTSECRET')"
+     }
     }
   }
 }
