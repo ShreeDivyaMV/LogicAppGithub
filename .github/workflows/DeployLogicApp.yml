@@ -5,12 +5,22 @@ name: Build and Deploy Logic App.
 env:
   AZURE_LOGICAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '3.1.301'    # set this to the dotnet version to use
-  RG_LA: 'your-la-rg'
-  RG_CON: 'your-con-rg'
-  LA_NAME: 'your-la-name'
+  #RG_LA: 'your-la-rg'
+  #RG_CON: 'your-con-rg'
+  #LA_NAME: 'your-la-name'
+
 
 on:
-  - workflow_dispatch 
+ workflow_dispatch:
+    inputs:
+      RG_LA:
+          description: 'name of Resource Group'
+          required: true
+      LA_NAME:
+          description: 'name of Logic App'
+          required: true
+        
+     
 
 jobs:
    logic_app_build: 
@@ -26,12 +36,12 @@ jobs:
         creds: ${{secrets.AZURE_CREDENTIALS}}
         enable-AzPSSession: true 
 
-    - name: Generate Connections
-      uses: azure/powershell@v1
-      with:
-        inlineScript: |
-          ./Scripts/Generate-Connections.ps1 -resourceGroup '${{ env.RG_CON }}'
-        azPSVersion: latest
+   # - name: Generate Connections
+     # uses: azure/powershell@v1
+     # with:
+       # inlineScript: |
+        #  ./Scripts/Generate-Connections.ps1 -resourceGroup '${{ env.RG_CON }}'
+        #azPSVersion: latest
 
     - name: Get publish Profile
       id: fncapp
