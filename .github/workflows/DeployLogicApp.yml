@@ -1,77 +1,35 @@
+# This is a basic workflow to help you get started with Actions
 
+name: provision-azure-resources-logic-app-vnet
 
-name: Build and Deploy Logic App. 
-
-env:
-  AZURE_LOGICAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '3.1.301'    # set this to the dotnet version to use
-  #RG_LA: 'your-la-rg'
-  #RG_CON: 'your-con-rg'
-  #LA_NAME: 'your-la-name'
-
-
+# Controls when the action will run. 
 on:
  workflow_dispatch:
     inputs:
-      RG_LA:
-          description: 'name of Resource Group'
-          required: true
-      LA_NAME:
-          description: 'name of Logic App'
-          required: true
-        
-     
+      subscriptionId:
+        description: 'SubscriptionId'
+        required: true
+      resourceGroupName:
+        description: 'Resource group name'
+        required: true
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-   logic_app_build: 
-    runs-on: ubuntu-latest
-    steps: 
+  # This workflow contains a single job called "build"
+  build-and-deploy:
+    # The type of runner that the job will run on
+    runs-on: windows-latest
 
-    - name: Checkout
-      uses: actions/checkout@v1
-    
-    - name: Login via Az module
-      uses: azure/login@v1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
-        enable-AzPSSession: true 
-
-   # - name: Generate Connections
-     # uses: azure/powershell@v1
-     # with:
-       # inlineScript: |
-        #  ./Scripts/Generate-Connections.ps1 -resourceGroup '${{ env.RG_CON }}'
-        #azPSVersion: latest
-
-    - name: Get publish Profile
-      id: fncapp
-      uses: azure/powershell@v1
-      with:
-        inlineScript: |
-          $profile = Get-AzWebAppPublishingProfile `
-              -ResourceGroupName ${{github.event.inputs.RG_LA}}`
-              -Name ${{github.event.inputs.LA_NAME}}
-          $profile = $profile.Replace("`r", "").Replace("`n", "")
-          Write-Output "::set-output name=profile::$profile"
-        azPSVersion: latest
-
-    - name: Create project folder
-      run: |
-        mkdir output
-        cp 'host.json' 'output/'
-        cp 'proxies.json' 'output/'
-        cp 'connections.json' 'output/'
-        cp -r 'starterworkflow' 'output/'
-    - name: Easy Zip Files
-      uses: vimtor/action-zip@v1
-      with:
-        dest: '${{ github.run_id }}.zip'
-        files: output/
-
-    - name: 'Run Azure Functions Action'
-      uses: Azure/functions-action@v1
-      id: fa
-      with:
-        app-name: ${{github.event.inputs.RG_LA}}
-        package: '${{ github.run_id }}.zip'
-        publish-profile: ${{steps.fncapp.outputs.profile}}
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - uses: azure/arm-deploy@v1
+        with:
+          subscriptionId: ${{github.event.inputs.subscriptionId}}
+          resourceGroupName: ${{github.event.inputs.resourceGroupName}}
+          template: ./LAv2-vNet/templates/azuredeploy.json
+          parameters: ./LAv2-vNet/templates/azuredeploy.parameters.json
