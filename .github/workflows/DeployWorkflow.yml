@@ -50,8 +50,8 @@ jobs:
       run: |
         mkdir output
         cp 'host.json' 'output/'
-        cp 'proxies.json' 'output/'
-        cp 'connections.json' 'output/'
+        #cp 'proxies.json' 'output/'
+        #cp 'connections.json' 'output/'
         cp -r 'Stateful1' 'output/'
 
     - name: Easy Zip Files
