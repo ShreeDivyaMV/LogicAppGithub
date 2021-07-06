@@ -3,9 +3,13 @@ name: build-and-deploy-logic-app-vnet
 on:
   workflow_dispatch:
     inputs:
-      LogicAppName:
-        description: 'Name of theLogic App'
+      ResourceGroupName:
+        description: 'Name of the Resource Group'
         required: true
+      LogicAppName:
+        description: 'Name of the Logic App'
+        required: true
+
 
 # CONFIGURATION
 # For help, go to https://github.com/Azure/Actions
@@ -29,20 +33,38 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-      uses: actions/setup-dotnet@v1
+    - name: Get publish Profile
+      id: fncapp
+      uses: azure/powershell@v1
       with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: 'build logicapp-fe'
-      shell: pwsh
+        inlineScript: |
+          $profile = Get-AzWebAppPublishingProfile `
+              -ResourceGroupName ${{github.event.inputs.ResourceGroupName}} `
+              -Name ${{github.event.inputs.LogicAppName}}
+          $profile = $profile.Replace("`r", "").Replace("`n", "")
+          Write-Output "::set-output name=profile::$profile"
+        azPSVersion: latest
+        
+    - name: Create project folder
       run: |
-        pushd './${{ env.AZURE_LOGICAPPFE_PACKAGE_PATH }}'
-        dotnet build --configuration Release --output ./output
-        popd
-    - name: 'deploy logic-app'
+        mkdir output
+        cp 'host.json' 'output/'
+        cp 'proxies.json' 'output/'
+        cp 'connections.json' 'output/'
+        cp -r 'Stateful1' 'output/'
+
+    - name: Easy Zip Files
+      uses: vimtor/action-zip@v1
+      with:
+        dest: '${{ github.run_id }}.zip'
+        files: output/
+        
+    - name: 'Run Azure Functions Action'
       uses: Azure/functions-action@v1
-      id: logic-app
+      id: fa
       with:
         app-name: ${{github.event.inputs.LogicAppName}}
-        package: '${{ env.AZURE_LOGICAPPFE_PACKAGE_PATH }}/output'
+        package: '${{ github.run_id }}.zip'
+        publish-profile: ${{steps.fncapp.outputs.profile}}  
+        
+    
