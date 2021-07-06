@@ -1,4 +1,4 @@
-name: build-and-deploy-logic-app-vnet
+name: build and deploy LA
 
 on:
   workflow_dispatch:
