@@ -28,10 +28,11 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@master
 
-    - name: 'Login via Azure CLI'
+    - name: Login via Az module
       uses: azure/login@v1
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+        enable-AzPSSession: true 
 
     - name: Get publish Profile
       id: fncapp
