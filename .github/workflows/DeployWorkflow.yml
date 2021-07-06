@@ -15,7 +15,7 @@ on:
 #
 # 2. Change these variables for your configuration:
 env:
-  AZURE_LOGICAPPFE_PACKAGE_PATH: '.'
+  AZURE_LOGICAPPFE_PACKAGE_PATH: 'Src'
 
 jobs:
   build-and-deploy:
