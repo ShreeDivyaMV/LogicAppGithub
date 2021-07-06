@@ -18,8 +18,7 @@ on:
 #   AZURE_RBAC_CREDENTIALS
 #
 # 2. Change these variables for your configuration:
-env:
-  AZURE_LOGICAPPFE_PACKAGE_PATH: 'Src'
+
 
 jobs:
   build-and-deploy:
@@ -28,7 +27,7 @@ jobs:
     - name: 'Checkout GitHub Action'
       uses: actions/checkout@master
 
-    - name: Login via Az module
+    - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
