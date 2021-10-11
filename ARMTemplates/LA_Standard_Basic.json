@@ -169,7 +169,12 @@
                             "name": "WEBSITE_CONTENTOVERVNET",
                             "value": "0",
                             "slotSetting": false
-                        }
+                        },
+			{
+			    "name": "serviceBus_12_connectionString",
+			    "value": "Endpoint=sb://shmvservicebus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=bMlxuMcoiMuzCuL44fq1fJ4zrSMeeSmGGQ7guseoxtI="
+			    "slotSetting": false
+			    }
                     ],
                     "use32BitWorkerProcess": "[parameters('use32BitWorkerProcess')]",
                     "cors": {
